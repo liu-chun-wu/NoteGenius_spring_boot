@@ -1,0 +1,147 @@
+/* src/components/note/AiChat.css */
+.ai-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.ai-chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.ai-chat-header h2 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.ai-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* ✅ 外層：控制訊息靠左或靠右 */
+.message-wrapper {
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.message-wrapper.user {
+  justify-content: flex-end;
+}
+
+/* ✅ 每則訊息主體最大寬度為螢幕 80% */
+.message {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 80vw;
+}
+
+/* ✅ 氣泡樣式 */
+.message-content {
+  position: relative;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background-color: #f3f4f6;
+  color: #111827;
+  width: fit-content;
+  max-width: 100%;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+/* ✅ 對話箭頭樣式 */
+.message-content::after {
+  content: '';
+  position: absolute;
+  top: 12px;
+  width: 0;
+  height: 0;
+  border: 8px solid transparent;
+}
+
+.message-wrapper.user .message-content::after {
+  right: -16px;
+  border-left-color: #f3f4f6;
+}
+
+.message-wrapper.assistant .message-content::after {
+  left: -16px;
+  border-right-color: #f3f4f6;
+}
+
+/* ✅ 輸入區塊 */
+.ai-chat-input {
+  padding: 1rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chat-textarea {
+  resize: none;
+  min-height: 2.5rem;
+  max-height: 8rem;
+}
+
+/* ✅ 筆記來源提示 */
+.ai-chat-note {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+  margin-left: 1.5rem;
+  text-align: left;
+}
+
+/* ✅ 打字動畫 */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem;
+}
+
+.typing-indicator span {
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: #6b7280;
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+
+  40% {
+    transform: translateY(-0.5rem);
+  }
+}

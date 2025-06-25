@@ -1,0 +1,311 @@
+/* ✅ NotesList.css：整合 Dropdown、紅色刪除、可滾動、深色模式、icon/tab/三點白色修正 */
+.notes-list {
+  height: 100vh;
+  overflow: hidden;
+  /* 防止整體出現 scroll */
+  display: flex;
+  flex-direction: column;
+}
+
+.label-header {
+  margin-bottom: 1rem;
+}
+
+.label-title {
+  display: block;
+  font-weight: bold;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tag-list-scrollable,
+.note-section-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-bottom: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  position: relative;
+  z-index: 1;
+  scrollbar-width: thin;
+  scrollbar-color: #a0aec0 transparent;
+}
+
+
+.note-section-scrollable::-webkit-scrollbar,
+.tag-list-scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.note-section-scrollable::-webkit-scrollbar-thumb,
+.tag-list-scrollable::-webkit-scrollbar-thumb {
+  background-color: #a0aec0;
+  border-radius: 4px;
+}
+
+
+.category-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.category-item:hover {
+  background-color: #f3f4f6;
+}
+
+.category-item.selected {
+  background-color: #e5e7eb;
+  font-weight: bold;
+}
+
+.notes-ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.note-item {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.note-item:hover {
+  background-color: #f3f4f6;
+}
+
+.note-item.selected {
+  background-color: #dbeafe;
+}
+
+.note-title-wrapper {
+  flex: 1;
+  cursor: pointer;
+}
+
+.note-title-truncate {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-title-edit-input {
+  width: 100%;
+  font-size: 14px;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.note-dropdown-wrapper {
+  position: relative;
+  margin-left: auto;
+  z-index: 10;
+}
+
+.note-dropdown-toggle {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.note-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 0.25rem;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  min-width: 140px;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.note-dropdown-item {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.note-dropdown-item:hover {
+  background: #f3f4f6;
+}
+
+.note-dropdown-item.delete {
+  color: #dc2626;
+}
+
+.note-dropdown-item.delete:hover {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.collapsible {
+  transition: max-height 0.3s ease;
+}
+
+.collapsible.open {
+  max-height: 220px;
+}
+
+.collapsible.closed {
+  max-height: 0;
+}
+
+/* ✅ 深色模式支援 + icon/tab/三點修正 */
+.dark body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+.dark .sidebar,
+.dark .editor-area,
+.dark .ai-chat-area {
+  background-color: #1e293b;
+  color: #e2e8f0;
+}
+
+.dark .label-title {
+  color: #f1f5f9;
+}
+
+.dark .note-dropdown-menu {
+  background-color: #1f2937;
+  color: #f1f5f9;
+  border-color: #475569;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+.dark .note-dropdown-item:hover {
+  background-color: #334155;
+}
+
+.dark .note-dropdown-item.delete {
+  color: #f87171;
+}
+
+.dark .note-dropdown-item.delete:hover {
+  background-color: #991b1b;
+  color: #fecaca;
+}
+
+.dark .category-item:hover {
+  background-color: #1e293b;
+}
+
+.dark .category-item.selected {
+  background-color: #334155;
+  color: #fff;
+}
+
+.dark .note-item.selected {
+  background-color: #1e40af;
+}
+
+.dark .note-title-edit-input {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border: 1px solid #475569;
+}
+
+.dark .dark-toggle-btn {
+  background-color: #475569;
+  color: #f1f5f9;
+}
+
+.dark .dark-toggle-btn:hover {
+  background-color: #64748b;
+}
+
+.dark-toggle-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #333;
+  color: #fff;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dark-toggle-btn:hover {
+  background-color: #555;
+}
+
+/* ✅ 暗黑下 icon / tab / 下拉選單為白色 */
+.dark .sidebar-toggle-icon svg,
+.dark .note-dropdown-toggle,
+.dark .note-dropdown-toggle svg,
+.dark .editor-tabs button,
+.dark .editor-tabs button svg {
+  color: #f1f5f9;
+  stroke: #f1f5f9;
+  fill: none;
+}
+
+.dark .editor-tabs button {
+  background-color: #1e293b;
+  border: none;
+  color: #cbd5e1;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.dark .editor-tabs button:hover {
+  background-color: #1e293b;
+  color: #f8fafc;
+}
+
+.dark .editor-tabs button.active,
+.dark .editor-tabs button[aria-selected='true'] {
+  background-color: #f1f5f9;
+  color: #1e293b;
+  font-weight: bold;
+  border: 1px solid #e2e8f0;
+}
+
+.dark .react-select__control {
+  background-color: #1f2937;
+  color: #f1f5f9;
+  border-color: #475569;
+}
+
+.dark .react-select__menu {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+.dark .react-select__option--is-selected {
+  background-color: #334155;
+}
+
+.dark .react-select__option--is-focused {
+  background-color: #475569;
+}

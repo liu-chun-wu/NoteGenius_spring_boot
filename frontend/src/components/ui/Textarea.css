@@ -1,0 +1,39 @@
+/* src/components/ui/Textarea.css */
+.textarea {
+  display: flex;
+  min-height: 80px;
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid #d1d5db;
+  background-color: transparent;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  resize: vertical;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+.textarea::placeholder {
+  color: #9ca3af;
+}
+
+.textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Textarea.css 補充樣式，貼最底下 */
+body.dark textarea.textarea {
+  background-color: #1e1e1e !important;
+  color: #f1f1f1 !important;
+  border-color: #444 !important;
+}
+
+body.dark textarea.textarea::placeholder {
+  color: #888 !important;
+}
