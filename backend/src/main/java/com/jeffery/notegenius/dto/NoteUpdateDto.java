@@ -1,10 +1,12 @@
 package com.jeffery.notegenius.dto;
 
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class NoteUpdateDto {
     private String title;
     private String content;

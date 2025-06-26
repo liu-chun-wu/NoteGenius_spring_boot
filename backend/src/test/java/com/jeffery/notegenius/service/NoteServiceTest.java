@@ -1,14 +1,8 @@
 package com.jeffery.notegenius.service;
 
-import com.jeffery.notegenius.dto.NoteCreateDto;
-import com.jeffery.notegenius.dto.NoteResponseDto;
-import com.jeffery.notegenius.dto.NoteUpdateDto;
-import com.jeffery.notegenius.model.Note;
-import com.jeffery.notegenius.model.Tag;
-import com.jeffery.notegenius.model.User;
-import com.jeffery.notegenius.repository.NoteRepository;
-import com.jeffery.notegenius.repository.TagRepository;
-import com.jeffery.notegenius.repository.UserRepository;
+import com.jeffery.notegenius.dto.*;
+import com.jeffery.notegenius.model.*;
+import com.jeffery.notegenius.repository.*;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

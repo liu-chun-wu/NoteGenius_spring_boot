@@ -1,66 +1,61 @@
 package com.jeffery.notegenius.service;
 
-import com.jeffery.notegenius.model.Tag;
-import com.jeffery.notegenius.model.User;
-import com.jeffery.notegenius.repository.TagRepository;
-import com.jeffery.notegenius.repository.UserRepository;
-
+import com.jeffery.notegenius.model.*;
+import com.jeffery.notegenius.dto.*;
+import com.jeffery.notegenius.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class TagService {
-
     private final TagRepository tagRepository;
     private final UserRepository userRepository;
 
-    public List<Tag> getAllTagsByUser(Long userId) {
-        return tagRepository.findAllByUserId(userId);
-    }
+    public TagResponse createTag(Long userId, TagCreateDto dto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "使用者不存在"));
 
-    public ResponseEntity<?> createTag(Tag tag, Long userId) {
-        if (tagRepository.existsByUserIdAndName(userId, tag.getName())) {
-            return ResponseEntity.badRequest().body("標籤名稱已存在");
-        }
-        User user = userRepository.findById(userId).orElseThrow();
+        tagRepository.findByUserIdAndName(userId, dto.getName())
+                .ifPresent(t -> { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "標籤名稱已存在"); });
+
+        Tag tag = new Tag();
+        tag.setName(dto.getName());
         tag.setUser(user);
-        return ResponseEntity.ok(tagRepository.save(tag));
+
+        Tag savedTag = tagRepository.save(tag);
+
+        return new TagResponse(savedTag.getName());
     }
 
-    public ResponseEntity<?> updateTag(Long id, Tag updated, Long userId) {
-        Tag tag = tagRepository.findByIdAndUserId(id, userId)
-                .orElse(null);
-        if (tag == null) {
-            return ResponseEntity.status(404).body("無此標籤或無權限修改");
-        }
-
-        // 若名稱重複也要擋
-        if (!tag.getName().equals(updated.getName()) &&
-                tagRepository.existsByUserIdAndName(userId, updated.getName())) {
-            return ResponseEntity.badRequest().body("標籤名稱重複");
-        }
-
-        tag.setName(updated.getName());
-        return ResponseEntity.ok(tagRepository.save(tag));
+    public List<TagResponse> getTagsByUserId(Long userId) {
+        return tagRepository.findAllByUserId(userId).stream()
+                .map(tag -> new TagResponse(tag.getName()))
+                .collect(Collectors.toList());
     }
 
-    @Transactional
-    public ResponseEntity<?> deleteTag(Long id, Long userId) {
-        Tag tag = tagRepository.findByIdAndUserId(id, userId)
-                .orElse(null);
-        if (tag == null) {
-            return ResponseEntity.status(404).body("無此標籤或無權限刪除");
-        }
+    public TagResponse updateTag(Long tagId, Long userId, TagUpdateDto dto) {
+        Tag tag = tagRepository.findByIdAndUserId(tagId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tag 不存在或無權限"));
 
-        // 清除所有筆記中的這個標籤（避免關聯錯誤）
-        tag.getNotes().forEach(note -> note.getTags().remove(tag));
+        tag.setName(dto.getName());
+        Tag updated = tagRepository.save(tag);
+
+        return new TagResponse(updated.getName());
+    }
+
+    public void deleteTag(Long tagId, Long userId) {
+        Tag tag = tagRepository.findByIdAndUserId(tagId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tag 不存在或無權限"));
 
         tagRepository.delete(tag);
-        return ResponseEntity.ok("標籤已刪除");
     }
+
 }
