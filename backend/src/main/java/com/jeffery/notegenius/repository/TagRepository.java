@@ -9,6 +9,5 @@ import java.util.Optional;
 public interface TagRepository extends JpaRepository<Tag, Long> {
     List<Tag> findAllByUserId(Long userId);
     Optional<Tag> findByUserIdAndName(Long userId, String name);
-    boolean existsByUserIdAndName(Long userId, String name);
     Optional<Tag> findByIdAndUserId(Long tagId, Long userId);
 }

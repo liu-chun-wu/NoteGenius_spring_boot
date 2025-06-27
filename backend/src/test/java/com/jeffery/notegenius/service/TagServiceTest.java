@@ -43,7 +43,7 @@ public class TagServiceTest {
         user.setId(userId);
 
         Tag newTag = new Tag();
-        newTag.setId(10L); // 加上 id，雖然現在 DTO 沒用上，但習慣保留
+        newTag.setId(10L);
         newTag.setName(dto.getName());
         newTag.setUser(user);
 
@@ -51,10 +51,11 @@ public class TagServiceTest {
         when(tagRepository.findByUserIdAndName(userId, dto.getName())).thenReturn(Optional.empty());
         when(tagRepository.save(any(Tag.class))).thenReturn(newTag);
 
-        TagResponse result = tagService.createTag(userId, dto);
+        TagResponseDto result = tagService.createTag(userId, dto);
 
         // ✅ 驗證回傳值是剛新增的 tag 名稱
         assertEquals("Work", result.getName());
+        assertEquals(10L, result.getId());
 
         // ✅ 驗證儲存動作有被觸發
         verify(tagRepository, times(1)).save(any(Tag.class));
@@ -83,12 +84,14 @@ public class TagServiceTest {
         when(tagRepository.findAllByUserId(userId)).thenReturn(mockTags);
 
         // Act
-        List<TagResponse> result = tagService.getTagsByUserId(userId);
+        List<TagResponseDto> result = tagService.getTagsByUserId(userId);
 
         // Assert
         assertEquals(2, result.size());
         assertEquals("Work", result.get(0).getName());
         assertEquals("Study", result.get(1).getName());
+        assertEquals(1L, result.get(0).getId());
+        assertEquals(2L, result.get(1).getId());
 
         verify(tagRepository, times(1)).findAllByUserId(userId);
     }
@@ -114,10 +117,11 @@ public class TagServiceTest {
         when(tagRepository.save(any(Tag.class))).thenReturn(tag);
 
         // Act
-        TagResponse result = tagService.updateTag(tagId, userId, dto);
+        TagResponseDto result = tagService.updateTag(tagId, userId, dto);
 
         // Assert
         assertEquals("UpdatedTag", result.getName());
+        assertEquals(10L, result.getId());
         verify(tagRepository).save(tag);
     }
 

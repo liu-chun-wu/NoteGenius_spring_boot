@@ -6,5 +6,6 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TagUpdateDto {
+     private Long id;
      private String name;
 }

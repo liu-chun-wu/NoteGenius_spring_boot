@@ -3,10 +3,8 @@ package com.jeffery.notegenius.service;
 import com.jeffery.notegenius.model.*;
 import com.jeffery.notegenius.dto.*;
 import com.jeffery.notegenius.repository.*;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -19,7 +17,7 @@ public class TagService {
     private final TagRepository tagRepository;
     private final UserRepository userRepository;
 
-    public TagResponse createTag(Long userId, TagCreateDto dto) {
+    public TagResponseDto createTag(Long userId, TagCreateDto dto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "使用者不存在"));
 
@@ -32,23 +30,23 @@ public class TagService {
 
         Tag savedTag = tagRepository.save(tag);
 
-        return new TagResponse(savedTag.getName());
+        return new TagResponseDto(savedTag.getId(), savedTag.getName());
     }
 
-    public List<TagResponse> getTagsByUserId(Long userId) {
+    public List<TagResponseDto> getTagsByUserId(Long userId) {
         return tagRepository.findAllByUserId(userId).stream()
-                .map(tag -> new TagResponse(tag.getName()))
+                .map(tag -> new TagResponseDto(tag.getId(),tag.getName()))
                 .collect(Collectors.toList());
     }
 
-    public TagResponse updateTag(Long tagId, Long userId, TagUpdateDto dto) {
+    public TagResponseDto updateTag(Long tagId, Long userId, TagUpdateDto dto) {
         Tag tag = tagRepository.findByIdAndUserId(tagId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tag 不存在或無權限"));
 
         tag.setName(dto.getName());
         Tag updated = tagRepository.save(tag);
 
-        return new TagResponse(updated.getName());
+        return new TagResponseDto(updated.getId(), updated.getName());
     }
 
     public void deleteTag(Long tagId, Long userId) {

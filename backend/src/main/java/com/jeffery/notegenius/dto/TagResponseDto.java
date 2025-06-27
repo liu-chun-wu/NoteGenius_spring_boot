@@ -5,6 +5,7 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TagResponse {
+public class TagResponseDto {
+    private Long id;
     private String name;
 }

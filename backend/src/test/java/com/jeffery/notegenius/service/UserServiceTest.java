@@ -27,7 +27,7 @@ public class UserServiceTest {
     private UserService userService;
 
     @Test
-    void testRegisterUser_shouldSaveUser() {
+    void testCreateUser() {
         // Arrange
         UserCreateDto dto = new UserCreateDto();
         dto.setUsername("jeffery");
