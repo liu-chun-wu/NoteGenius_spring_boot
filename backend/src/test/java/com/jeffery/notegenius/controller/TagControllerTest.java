@@ -13,7 +13,6 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-@Disabled
 @ActiveProfiles("test")
 @WebMvcTest(TagController.class)
 @AutoConfigureMockMvc
