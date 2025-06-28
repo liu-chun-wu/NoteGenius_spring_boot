@@ -34,23 +34,23 @@ class NoteServiceTest {
     private NoteService noteService;
 
     @Test
-    void testCreateNote() {
+    void testCreateNote_shouldCreateNoteAndReturnNoteResponseDto() {
         Long userId = 1L;
+        String title = "Test Title";
+        String content = "Test Content";
+        Long parentId = null;
+        List<String> tagNames = List.of("Tag1", "Tag2");
+
         User mockUser = new User();
         mockUser.setId(userId);
-
-        NoteCreateDto dto = new NoteCreateDto();
-        dto.setTitle("Test Title");
-        dto.setContent("Test Content");
-        dto.setTagNames(List.of("Tag1", "Tag2"));
 
         Tag tag1 = new Tag(); tag1.setName("Tag1"); tag1.setUser(mockUser);
         Tag tag2 = new Tag(); tag2.setName("Tag2"); tag2.setUser(mockUser);
 
         Note savedNote = new Note();
         savedNote.setId(100L);
-        savedNote.setTitle(dto.getTitle());
-        savedNote.setContent(dto.getContent());
+        savedNote.setTitle(title);
+        savedNote.setContent(content);
         savedNote.setUser(mockUser);
         savedNote.setTags(Set.of(tag1, tag2));
 
@@ -60,7 +60,7 @@ class NoteServiceTest {
         when(tagRepository.save(any(Tag.class))).thenAnswer(inv -> inv.getArgument(0));
         when(noteRepository.save(any(Note.class))).thenReturn(savedNote);
 
-        NoteResponseDto result = noteService.createNote(dto, userId);
+        NoteResponseDto result = noteService.createNote(userId, title, content, parentId, tagNames);
 
         assertEquals("Test Title", result.getTitle());
         assertEquals("Test Content", result.getContent());
@@ -68,13 +68,11 @@ class NoteServiceTest {
     }
 
     @Test
-    void testGetNoteById() {
+    void testGetNoteById_shouldReturnNoteResponseDto() {
         Long userId = 1L;
         Long noteId = 100L;
 
-        User user = new User();
-        user.setId(userId);
-
+        User user = new User(); user.setId(userId);
         Note note = new Note();
         note.setId(noteId);
         note.setUser(user);
@@ -90,66 +88,10 @@ class NoteServiceTest {
     }
 
     @Test
-    void testUpdateNote() {
-        Long userId = 1L;
-        Long noteId = 100L;
-
-        User user = new User();
-        user.setId(userId);
-
-        Note note = new Note();
-        note.setId(noteId);
-        note.setUser(user);
-        note.setContent("Original Content");
-
-        NoteUpdateDto dto = new NoteUpdateDto();
-        dto.setTitle("Updated");
-        dto.setContent("Updated Content");
-        dto.setTagNames(List.of("T1"));
-
-        Tag tag = new Tag();
-        tag.setName("T1");
-        tag.setUser(user);
-
-        // ✅ 正確 mock：資料存在
-        when(noteRepository.findByIdAndUserId(noteId, userId)).thenReturn(Optional.of(note));
-
-        // ✅ 模擬 tag 不存在 → 要創一個新的
-        when(tagRepository.findByUserIdAndName(userId, "T1")).thenReturn(Optional.empty());
-        when(tagRepository.save(any(Tag.class))).thenReturn(tag);
-
-        // ✅ 模擬更新後的 note 儲存
-        when(noteRepository.save(any(Note.class))).thenReturn(note);
-
-        NoteResponseDto result = noteService.updateNote(noteId, dto, userId);
-        assertEquals("Updated", result.getTitle());
-        assertEquals("Updated Content", result.getContent());
-        assertEquals(List.of("T1"), result.getTagNames());
-    }
-
-    @Test
-    void testDeleteNote() {
-        Long userId = 1L;
-        Long noteId = 100L;
-
-        User user = new User();
-        user.setId(userId);
-
-        Note note = new Note();
-        note.setId(noteId);
-        note.setUser(user);
-
-        when(noteRepository.findByIdAndUserId(noteId, userId)).thenReturn(Optional.of(note)); // ✅ 這一行是關鍵
-
-        assertDoesNotThrow(() -> noteService.deleteNote(noteId, userId));
-        verify(noteRepository).delete(note);
-    }
-
-
-    @Test
-    void testGetAllNotesByUser() {
+    void testGetAllNotesByUserId_shouldReturnNoteResponseDto() {
         Long userId = 1L;
         User user = new User(); user.setId(userId);
+
         Note note1 = new Note(); note1.setId(1L); note1.setTitle("Note1"); note1.setUser(user); note1.setTags(Set.of());
         Note note2 = new Note(); note2.setId(2L); note2.setTitle("Note2"); note2.setUser(user); note2.setTags(Set.of());
 
@@ -160,4 +102,55 @@ class NoteServiceTest {
         assertEquals("Note1", results.get(0).getTitle());
         assertEquals("Note2", results.get(1).getTitle());
     }
+
+    @Test
+    void testUpdateNote_shouldUpdateNoteAndReturnNoteResponseDto() {
+        Long userId = 1L;
+        Long noteId = 100L;
+        String newTitle = "Updated Title";
+        String newContent = "Updated Content";
+        Long parentId = null;
+        List<String> newTags = List.of("Updated");
+
+        User user = new User(); user.setId(userId);
+
+        Note existingNote = new Note();
+        existingNote.setId(noteId);
+        existingNote.setUser(user);
+        existingNote.setTitle("Old Title");
+        existingNote.setContent("Old Content");
+        existingNote.setTags(Set.of());
+
+        Tag newTag = new Tag(); newTag.setName("Updated"); newTag.setUser(user);
+
+        when(noteRepository.findByIdAndUserId(noteId, userId)).thenReturn(Optional.of(existingNote));
+        when(tagRepository.findByUserIdAndName(userId, "Updated")).thenReturn(Optional.empty());
+        when(tagRepository.save(any(Tag.class))).thenReturn(newTag);
+        when(noteRepository.save(any(Note.class))).thenReturn(existingNote);
+
+        NoteResponseDto result = noteService.updateNote(noteId, userId, newTitle, newContent, parentId, newTags);
+
+        assertEquals("Updated Title", result.getTitle());
+        assertEquals("Updated Content", result.getContent());
+        assertTrue(result.getTagNames().contains("Updated"));
+    }
+
+    @Test
+    void testDeleteNote_shouldDeleteNoteAndReturnNothing() {
+        Long userId = 1L;
+        Long noteId = 100L;
+
+        User user = new User();
+        user.setId(userId);
+
+        Note note = new Note();
+        note.setId(noteId);
+        note.setUser(user);
+
+        when(noteRepository.findByIdAndUserId(noteId, userId)).thenReturn(Optional.of(note));
+
+        assertDoesNotThrow(() -> noteService.deleteNote(noteId, userId));
+        verify(noteRepository).delete(note);
+    }
+
 }

@@ -1,25 +1,25 @@
 package com.jeffery.notegenius.service;
 
-import com.jeffery.notegenius.model.*;
-import com.jeffery.notegenius.repository.*;
-import com.jeffery.notegenius.dto.*;
+import com.jeffery.notegenius.model.User;
+import com.jeffery.notegenius.repository.UserRepository;
+import com.jeffery.notegenius.dto.UserResponseDto;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
-public class UserServiceTest {
+class UserServiceTest {
+
     @Mock
     private UserRepository userRepository;
 
@@ -27,24 +27,59 @@ public class UserServiceTest {
     private UserService userService;
 
     @Test
-    void testCreateUser() {
-        // Arrange
-        UserCreateDto dto = new UserCreateDto();
-        dto.setUsername("jeffery");
-        dto.setEmail("jeffery@example.com");
-        dto.setPassword("plaintext123");
+    void testRegisterUser_shouldSaveUserAndReturnUserResponseDto() {
+        // 原始參數直接傳入
+        String username = "jeff";
+        String email = "jeff@example.com";
+        String password = "securePassword";
 
-        // Act & Assert
-        assertDoesNotThrow(() -> userService.createUser(dto));
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setUsername(username);
+        savedUser.setEmail(email);
+        savedUser.setPassword(password);
 
-        // Verify repository was called with user containing expected fields
-        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
-        verify(userRepository).save(captor.capture());
-        User savedUser = captor.getValue();
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
-        assertEquals("jeffery", savedUser.getUsername());
-        assertEquals("jeffery@example.com", savedUser.getEmail());
-        assertEquals("plaintext123", savedUser.getPassword());
+        UserResponseDto result = userService.registerUser(username, email, password);
+
+        assertEquals(1L, result.getId());
+        assertEquals(username, result.getUsername());
+        assertEquals(email, result.getEmail());
     }
 
+    @Test
+    void testGetUserById_shouldReturnUserResponseDto() {
+        Long userId = 1L;
+        User user = new User();
+        user.setId(userId);
+        user.setUsername("jeff");
+        user.setEmail("jeff@example.com");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        UserResponseDto result = userService.getUserById(userId);
+
+        assertEquals(userId, result.getId());
+        assertEquals("jeff", result.getUsername());
+        assertEquals("jeff@example.com", result.getEmail());
+    }
+
+    @Test
+    void testGetPasswordByUsernameAndEmail_shouldReturnPassword() {
+        String username = "jeff";
+        String email = "jeff@example.com";
+        String password = "securePassword";
+
+        User user = new User();
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPassword(password);
+
+        when(userRepository.findByEmailAndUsername(username, email)).thenReturn(Optional.of(user));
+
+        String result = userService.getPasswordByUsernameAndEmail(username, email);
+
+        assertEquals(password, result);
+    }
 }

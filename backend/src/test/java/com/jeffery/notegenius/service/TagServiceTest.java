@@ -33,100 +33,77 @@ public class TagServiceTest {
     private TagService tagService;
 
     @Test
-    void testCreateTag() {
+    void testCreateTag_shouldCreateTagAndReturnTagResponseDto() {
         Long userId = 1L;
-
-        TagCreateDto dto = new TagCreateDto();
-        dto.setName("Work");
+        String tagName = "Work";
 
         User user = new User();
         user.setId(userId);
 
         Tag newTag = new Tag();
         newTag.setId(10L);
-        newTag.setName(dto.getName());
+        newTag.setName(tagName);
         newTag.setUser(user);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(tagRepository.findByUserIdAndName(userId, dto.getName())).thenReturn(Optional.empty());
+        when(tagRepository.findByUserIdAndName(userId, tagName)).thenReturn(Optional.empty());
         when(tagRepository.save(any(Tag.class))).thenReturn(newTag);
 
-        TagResponseDto result = tagService.createTag(userId, dto);
+        TagResponseDto result = tagService.createTag(userId, tagName);
 
-        // ✅ 驗證回傳值是剛新增的 tag 名稱
         assertEquals("Work", result.getName());
         assertEquals(10L, result.getId());
-
-        // ✅ 驗證儲存動作有被觸發
         verify(tagRepository, times(1)).save(any(Tag.class));
     }
 
     @Test
-    void testGetAllTagsByUserId() {
-        // Arrange
+    void testGetAllTagsByUserId_shouldReturnTagResponseDto() {
         Long userId = 1L;
 
         User user = new User();
         user.setId(userId);
 
-        Tag tag1 = new Tag();
-        tag1.setId(1L);
-        tag1.setName("Work");
-        tag1.setUser(user);
-
-        Tag tag2 = new Tag();
-        tag2.setId(2L);
-        tag2.setName("Study");
-        tag2.setUser(user);
+        Tag tag1 = new Tag(); tag1.setId(1L); tag1.setName("Work"); tag1.setUser(user);
+        Tag tag2 = new Tag(); tag2.setId(2L); tag2.setName("Study"); tag2.setUser(user);
 
         List<Tag> mockTags = List.of(tag1, tag2);
-
         when(tagRepository.findAllByUserId(userId)).thenReturn(mockTags);
 
-        // Act
         List<TagResponseDto> result = tagService.getTagsByUserId(userId);
 
-        // Assert
         assertEquals(2, result.size());
         assertEquals("Work", result.get(0).getName());
         assertEquals("Study", result.get(1).getName());
         assertEquals(1L, result.get(0).getId());
         assertEquals(2L, result.get(1).getId());
-
         verify(tagRepository, times(1)).findAllByUserId(userId);
     }
 
     @Test
-    void testUpdateTag() {
-        // Arrange
+    void testUpdateTag_shouldUpdateTagAndReturnTagResponseDto() {
         Long userId = 1L;
         Long tagId = 10L;
+        String newName = "UpdatedTag";
 
-        TagUpdateDto dto = new TagUpdateDto();
-        dto.setName("UpdatedTag");
+        User user = new User(); user.setId(userId);
 
-        User user = new User();
-        user.setId(userId);
+        Tag existingTag = new Tag();
+        existingTag.setId(tagId);
+        existingTag.setName("OldTag");
+        existingTag.setUser(user);
 
-        Tag tag = new Tag();
-        tag.setId(tagId);
-        tag.setName("OldName");
-        tag.setUser(user);
+        when(tagRepository.findByIdAndUserId(tagId, userId)).thenReturn(Optional.of(existingTag));
+        when(tagRepository.save(any(Tag.class))).thenReturn(existingTag);
 
-        when(tagRepository.findByIdAndUserId(tagId, userId)).thenReturn(Optional.of(tag));
-        when(tagRepository.save(any(Tag.class))).thenReturn(tag);
+        TagResponseDto result = tagService.updateTag(tagId, userId, newName);
 
-        // Act
-        TagResponseDto result = tagService.updateTag(tagId, userId, dto);
-
-        // Assert
         assertEquals("UpdatedTag", result.getName());
-        assertEquals(10L, result.getId());
-        verify(tagRepository).save(tag);
+        assertEquals(tagId, result.getId());
+        verify(tagRepository).save(existingTag);
     }
 
     @Test
-    void testDeleteTag() {
+    void testDeleteTag_shouldDeleteTagAndReturnNothing() {
         // Arrange
         Long userId = 1L;
         Long tagId = 100L;
@@ -146,6 +123,4 @@ public class TagServiceTest {
 
         verify(tagRepository, times(1)).delete(tag);
     }
-
-
 }

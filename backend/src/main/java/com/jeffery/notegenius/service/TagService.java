@@ -17,33 +17,32 @@ public class TagService {
     private final TagRepository tagRepository;
     private final UserRepository userRepository;
 
-    public TagResponseDto createTag(Long userId, TagCreateDto dto) {
+    public TagResponseDto createTag(Long userId, String name) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "使用者不存在"));
 
-        tagRepository.findByUserIdAndName(userId, dto.getName())
+        tagRepository.findByUserIdAndName(userId, name)
                 .ifPresent(t -> { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "標籤名稱已存在"); });
 
         Tag tag = new Tag();
-        tag.setName(dto.getName());
+        tag.setName(name);
         tag.setUser(user);
 
         Tag savedTag = tagRepository.save(tag);
-
         return new TagResponseDto(savedTag.getId(), savedTag.getName());
     }
 
     public List<TagResponseDto> getTagsByUserId(Long userId) {
         return tagRepository.findAllByUserId(userId).stream()
-                .map(tag -> new TagResponseDto(tag.getId(),tag.getName()))
+                .map(tag -> new TagResponseDto(tag.getId(), tag.getName()))
                 .collect(Collectors.toList());
     }
 
-    public TagResponseDto updateTag(Long tagId, Long userId, TagUpdateDto dto) {
+    public TagResponseDto updateTag(Long tagId, Long userId, String name) {
         Tag tag = tagRepository.findByIdAndUserId(tagId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tag 不存在或無權限"));
 
-        tag.setName(dto.getName());
+        tag.setName(name);
         Tag updated = tagRepository.save(tag);
 
         return new TagResponseDto(updated.getId(), updated.getName());
@@ -55,5 +54,4 @@ public class TagService {
 
         tagRepository.delete(tag);
     }
-
 }

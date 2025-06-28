@@ -1,14 +1,13 @@
 package com.jeffery.notegenius.service;
 
-import com.jeffery.notegenius.dto.*;
+import com.jeffery.notegenius.dto.NoteResponseDto;
 import com.jeffery.notegenius.model.*;
 import com.jeffery.notegenius.repository.*;
 
 import lombok.RequiredArgsConstructor;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -22,45 +21,34 @@ public class NoteService {
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
 
-    public NoteResponseDto createNote(NoteCreateDto dto, Long userId) {
+    public NoteResponseDto createNote(Long userId, String title, String content, Long parentId, List<String> tagNames) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "使用者不存在"));
 
-        Set<Tag> tags = dto.getTagNames().stream()
+        Set<Tag> tags = tagNames.stream()
                 .map(name -> tagRepository.findByUserIdAndName(userId, name)
                         .orElseGet(() -> {
-                            Tag tag = new Tag(); // 使用無參數建構子
+                            Tag tag = new Tag();
                             tag.setName(name);
                             tag.setUser(user);
                             return tagRepository.save(tag);
                         }))
                 .collect(Collectors.toSet());
 
-
         Note note = new Note();
-        note.setTitle(dto.getTitle());
-        note.setContent(dto.getContent());
+        note.setTitle(title);
+        note.setContent(content);
         note.setCreatedAt(LocalDateTime.now());
         note.setUser(user);
         note.setTags(tags);
 
-        if (dto.getParentId() != null) {
-            noteRepository.findByIdAndUserId(dto.getParentId(), userId)
+        if (parentId != null) {
+            noteRepository.findByIdAndUserId(parentId, userId)
                     .ifPresent(note::setParent);
         }
 
         Note savedNote = noteRepository.save(note);
         return toResponseDto(savedNote);
-    }
-
-    private NoteResponseDto toResponseDto(Note note) {
-        NoteResponseDto dto = new NoteResponseDto();
-        dto.setId(note.getId());
-        dto.setTitle(note.getTitle());
-        dto.setContent(note.getContent());
-        dto.setCreatedAt(note.getCreatedAt());
-        dto.setTagNames(note.getTags().stream().map(Tag::getName).collect(Collectors.toList()));
-        return dto;
     }
 
     public Optional<NoteResponseDto> getNoteById(Long noteId, Long userId) {
@@ -75,29 +63,30 @@ public class NoteService {
                 .collect(Collectors.toList());
     }
 
-    public NoteResponseDto updateNote(Long noteId, NoteUpdateDto dto, Long userId) {
+    public NoteResponseDto updateNote(Long noteId, Long userId, String title, String content, Long parentId, List<String> tagNames) {
         Note note = noteRepository.findByIdAndUserId(noteId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "筆記不存在或無權限"));
 
-        if (dto.getTitle() != null) note.setTitle(dto.getTitle());
-        if (dto.getContent() != null) note.setContent(dto.getContent());
+        if (title != null) note.setTitle(title);
+        if (content != null) note.setContent(content);
 
-        if (dto.getTagNames() != null) {
-            Set<Tag> tags = dto.getTagNames().stream()
+        if (parentId != null) {
+            noteRepository.findByIdAndUserId(parentId, userId)
+                    .ifPresent(note::setParent);
+        }
+
+        if (tagNames != null) {
+            User user = note.getUser();
+            Set<Tag> tags = tagNames.stream()
                     .map(name -> tagRepository.findByUserIdAndName(userId, name)
                             .orElseGet(() -> {
                                 Tag tag = new Tag();
                                 tag.setName(name);
-                                tag.setUser(note.getUser());
+                                tag.setUser(user);
                                 return tagRepository.save(tag);
                             }))
                     .collect(Collectors.toSet());
             note.setTags(tags);
-        }
-
-        if (dto.getParentId() != null) {
-            noteRepository.findByIdAndUserId(dto.getParentId(), userId)
-                    .ifPresent(note::setParent);
         }
 
         Note savedNote = noteRepository.save(note);
@@ -110,4 +99,13 @@ public class NoteService {
         noteRepository.delete(note);
     }
 
+    private NoteResponseDto toResponseDto(Note note) {
+        NoteResponseDto dto = new NoteResponseDto();
+        dto.setId(note.getId());
+        dto.setTitle(note.getTitle());
+        dto.setContent(note.getContent());
+        dto.setCreatedAt(note.getCreatedAt());
+        dto.setTagNames(note.getTags().stream().map(Tag::getName).collect(Collectors.toList()));
+        return dto;
+    }
 }
