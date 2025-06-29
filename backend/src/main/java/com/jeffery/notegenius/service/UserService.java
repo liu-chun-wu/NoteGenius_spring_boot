@@ -1,9 +1,10 @@
 package com.jeffery.notegenius.service;
 
-import com.jeffery.notegenius.dto.UserResponseDto;
+import com.jeffery.notegenius.dto.*;
 import com.jeffery.notegenius.model.*;
 
 import com.jeffery.notegenius.repository.UserRepository;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -39,5 +40,21 @@ public class UserService {
 
     private UserResponseDto convertToDto(User user) {
         return new UserResponseDto(user.getId(), user.getUsername(), user.getEmail());
+    }
+
+    public String login(UserLoginRequestDto loginDto, HttpSession session) {
+        User user = userRepository.findByUsername(loginDto.getUsername())
+                .orElseThrow(() -> new RuntimeException("使用者不存在"));
+
+        if (!user.getPassword().equals(loginDto.getPassword())) {
+            throw new RuntimeException("密碼錯誤");
+        }
+
+        session.setAttribute("userId", user.getId());
+        return "登入成功";
+    }
+
+    public void logout(HttpSession session) {
+        session.invalidate();
     }
 }

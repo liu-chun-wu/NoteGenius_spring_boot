@@ -2,13 +2,16 @@ package com.jeffery.notegenius.service;
 
 import com.jeffery.notegenius.model.User;
 import com.jeffery.notegenius.repository.UserRepository;
-import com.jeffery.notegenius.dto.UserResponseDto;
+import com.jeffery.notegenius.dto.*;
 
+import jakarta.servlet.http.HttpSession;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
@@ -82,4 +85,82 @@ class UserServiceTest {
 
         assertEquals(password, result);
     }
+
+    @Test
+    void testLogin_shouldReturnSuccessMessage() {
+        // Arrange
+        UserLoginRequestDto loginDto = new UserLoginRequestDto();
+        loginDto.setUsername("jeffery");
+        loginDto.setPassword("123456");
+
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("jeffery");
+        user.setPassword("123456");
+
+        HttpSession mockSession = new MockHttpSession();
+
+        when(userRepository.findByUsername("jeffery")).thenReturn(Optional.of(user));
+
+        // Act
+        String result = userService.login(loginDto, mockSession);
+
+        // Assert
+        assertEquals("登入成功", result);
+        assertEquals(1L, mockSession.getAttribute("userId"));
+
+        verify(userRepository).findByUsername("jeffery");
+    }
+
+    @Test
+    void testLogin_userNotFound_shouldThrowException() {
+        // Arrange
+        UserLoginRequestDto loginDto = new UserLoginRequestDto();
+        loginDto.setUsername("notfound");
+        loginDto.setPassword("123456");
+
+        when(userRepository.findByUsername("notfound")).thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                userService.login(loginDto, new MockHttpSession())
+        );
+        assertEquals("使用者不存在", exception.getMessage());
+    }
+
+    @Test
+    void testLogin_wrongPassword_shouldThrowException() {
+        // Arrange
+        UserLoginRequestDto loginDto = new UserLoginRequestDto();
+        loginDto.setUsername("jeffery");
+        loginDto.setPassword("wrongpass");
+
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("jeffery");
+        user.setPassword("correctpass");
+
+        when(userRepository.findByUsername("jeffery")).thenReturn(Optional.of(user));
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                userService.login(loginDto, new MockHttpSession())
+        );
+        assertEquals("密碼錯誤", exception.getMessage());
+    }
+
+    @Test
+    void testLogout_shouldInvalidateSession() {
+        // Arrange：建立並放入 userId 模擬登入狀態
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute("userId", 1L);
+        assertNotNull(session.getAttribute("userId")); // 確保 session 有資料
+
+        // Act：執行 logout
+        userService.logout(session);
+
+        // Assert：確認 session 已失效（Spring Mock session 的方式）
+        assertTrue(session.isInvalid());
+    }
+
 }

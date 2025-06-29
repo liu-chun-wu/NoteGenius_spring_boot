@@ -1,14 +1,12 @@
 package com.jeffery.notegenius.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jeffery.notegenius.dto.UserFindPasswordRequestDto;
-import com.jeffery.notegenius.dto.UserRegisterRequestDto;
-import com.jeffery.notegenius.dto.UserResponseDto;
+import com.jeffery.notegenius.dto.*;
 import com.jeffery.notegenius.service.UserService;
+
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,7 +16,11 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -56,7 +58,7 @@ class UserControllerTest {
         responseDto.setUsername("jeffery");
         responseDto.setEmail("jeffery@example.com");
 
-        Mockito.when(userService.registerUser(
+        when(userService.registerUser(
                 eq("jeffery"),
                 eq("jeffery@example.com"),
                 eq("123456")
@@ -80,7 +82,7 @@ class UserControllerTest {
 
         String expectedPassword = "abc123xyz";
 
-        Mockito.when(userService.getPasswordByUsernameAndEmail(
+        when(userService.getPasswordByUsernameAndEmail(
                 eq("jeffery"),
                 eq("jeffery@example.com")
         )).thenReturn(expectedPassword);
@@ -100,7 +102,7 @@ class UserControllerTest {
         responseDto.setUsername("jeffery");
         responseDto.setEmail("jeffery@example.com");
 
-        Mockito.when(userService.getUserById(eq(1L))).thenReturn(responseDto);
+        when(userService.getUserById(eq(1L))).thenReturn(responseDto);
 
         mockMvc.perform(get("/api/users/me/")
                         .session(session))
@@ -109,4 +111,45 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.username").value("jeffery"))
                 .andExpect(jsonPath("$.email").value("jeffery@example.com"));
     }
+
+    @Test
+    void testLogin_shouldReturnSuccessMessageWithUserId() throws Exception {
+        UserLoginRequestDto loginDto = new UserLoginRequestDto();
+        loginDto.setUsername("jeffery");
+        loginDto.setPassword("123456");
+
+        String message = "登入成功";
+
+        // 模擬 service 傳回登入成功
+        when(userService.login(any(UserLoginRequestDto.class), any(HttpSession.class)))
+                .thenAnswer(invocation -> {
+                    HttpSession session = invocation.getArgument(1);
+                    session.setAttribute("userId", 1L); // 模擬內部設定 session
+                    return message;
+                });
+
+        mockMvc.perform(post("/api/users/login/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginDto))
+                        .session(session))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("登入成功")))
+                .andExpect(content().string(containsString("userId=1")));
+
+        verify(userService).login(any(UserLoginRequestDto.class), any(HttpSession.class));
+    }
+
+    @Test
+    void testLogout_shouldClearSessionAndReturnSuccess() throws Exception {
+        // 模擬登入狀態
+        session.setAttribute("userId", 1L);
+
+        mockMvc.perform(post("/api/users/logout/")
+                        .session(session))
+                .andExpect(status().isOk())
+                .andExpect(content().string("登出成功"));
+
+        verify(userService).logout(any(HttpSession.class));
+    }
+
 }

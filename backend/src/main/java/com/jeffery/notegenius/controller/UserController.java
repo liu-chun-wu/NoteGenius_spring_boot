@@ -1,11 +1,10 @@
 package com.jeffery.notegenius.controller;
 
-import com.jeffery.notegenius.dto.UserRegisterRequestDto;
-import com.jeffery.notegenius.dto.UserFindPasswordRequestDto;
-import com.jeffery.notegenius.dto.UserResponseDto;
+import com.jeffery.notegenius.dto.*;
 import com.jeffery.notegenius.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -32,5 +31,19 @@ public class UserController {
     public UserResponseDto getCurrentUser(HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
         return userService.getUserById(userId);
+    }
+
+    // ✅ 新增：登入 API（不需登入）
+    @PostMapping("/login/")
+    public ResponseEntity<String> login(@RequestBody UserLoginRequestDto loginDto, HttpSession session) {
+        String message = userService.login(loginDto, session);
+        return ResponseEntity.ok(message + "，userId=" + session.getAttribute("userId"));
+    }
+
+    // ✅ 新增：登出 API（需登入）
+    @PostMapping("/logout/")
+    public ResponseEntity<String> logout(HttpSession session) {
+        userService.logout(session);
+        return ResponseEntity.ok("登出成功");
     }
 }
