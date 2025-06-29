@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TagRequestDto {
-    private String name;
+public class UserFindPasswordRequestDto {
+    private String username;
+    private String email;
 }

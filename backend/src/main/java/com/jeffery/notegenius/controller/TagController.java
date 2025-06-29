@@ -1,37 +1,42 @@
 package com.jeffery.notegenius.controller;
 
+import com.jeffery.notegenius.dto.TagRequestDto;
+import com.jeffery.notegenius.dto.TagResponseDto;
+import com.jeffery.notegenius.service.TagService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/api/tags/")
+@RequestMapping("/api/tags")
 @RequiredArgsConstructor
 public class TagController {
 
-//    private final TagService tagService;
-//
-//    @GetMapping
-//    public ResponseEntity<?> getTagsByUser(HttpSession session) {
-//        Long userId = (Long) session.getAttribute("userId");
-//        if (userId == null) return ResponseEntity.status(401).body("尚未登入");
-//        List<TagResponseDto> tags = tagService.getTagsByUserId(userId);
-//        return ResponseEntity.ok(tags);
-//    }
-//
-//    @PostMapping
-//    public ResponseEntity<?> createTag(@RequestBody TagCreateDto tagCreateDto,
-//                                                    HttpSession session) {
-//        Long userId = (Long) session.getAttribute("userId");
-//        if (userId == null) return ResponseEntity.status(401).body("尚未登入");
-//        TagResponseDto createdTag = tagService.createTag(userId,tagCreateDto);
-//        return ResponseEntity.ok(createdTag);
-//    }
-//
-//    @DeleteMapping("{id}/")
-//    public ResponseEntity<?> deleteTag(@PathVariable Long id, HttpSession session) {
-//        Long userId = (Long) session.getAttribute("userId");
-//        if (userId == null) return ResponseEntity.status(401).body("尚未登入");
-//        tagService.deleteTag(id, userId);  // 假設刪除需要驗證此 userId 是否為擁有者
-//        return ResponseEntity.noContent().build();
-//    }
+    private final TagService tagService;
+
+    @GetMapping("/")
+    public List<TagResponseDto> getTagsByUser(@SessionAttribute Long userId) {
+        return tagService.getTagsByUserId(userId);
+    }
+
+    @PostMapping("/")
+    public TagResponseDto createTag(@SessionAttribute Long userId,
+                                    @RequestBody TagRequestDto requestDto) {
+        return tagService.createTag(userId, requestDto.getName());
+    }
+
+    @DeleteMapping("/{id}/")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTag(@PathVariable Long id,
+                          @SessionAttribute Long userId) {
+        tagService.deleteTag(id, userId);
+    }
+
+    @ExceptionHandler(org.springframework.web.bind.ServletRequestBindingException.class)
+    @ResponseStatus(org.springframework.http.HttpStatus.UNAUTHORIZED)
+    public String handleMissingSessionAttr(Exception ex) {
+        return "Unauthorized - Missing session";
+    }
 }
